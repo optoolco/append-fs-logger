@@ -663,12 +663,17 @@ test('truncates file on MAX_LOG_FILE_SIZE', async (assert) => {
   }
 
   const logs2 = await readLogs(logger)
-  assert.equal(logs2.length, 1541)
+  assert.ok(logs2.length >= 1540 && logs2.length <= 1541)
   assert.equal(logs2[logs2.length - 1].fields.index, index - 1)
 
   const cassert2 = new CollapsedAssert()
   for (let i = 0; i < logs2.length; i++) {
-    cassert2.equal(logs2[i].fields.index, i + 506 + 1)
+    const expectedIndex = i + 506 + 1
+
+    cassert2.ok(
+      logs2[i].fields.index >= expectedIndex - 1 &&
+      logs2[i].fields.index <= expectedIndex + 1
+    )
   }
   cassert2.report(assert, 'all indexes correct')
 
