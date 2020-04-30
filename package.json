@@ -1,0 +1,43 @@
+{
+  "name": "append-fs-logger",
+  "version": "1.0.0",
+  "description": "Straight forward zero-dependency disk logger",
+  "main": "index.js",
+  "scripts": {
+    "lint": "npr standard",
+    "test": "npm run lint && node test/index.js"
+  },
+  "author": "Raynos <raynos2@gmail.com>",
+  "repository": "git://github.com/optoolco/append-fs-logger.git",
+  "homepage": "https://github.com/optoolco/append-fs-logger",
+  "bugs": {
+    "url": "https://github.com/optoolco/append-fs-logger/issues",
+    "email": "raynos2@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Raynos"
+    },
+    {
+      "name": "heapwolf"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/optoolco/append-fs-logger/raw/master/LICENSE"
+    }
+  ],
+  "binDependencies": {
+    "standard": "14.3.1"
+  },
+  "devDependencies": {
+    "@pre-bundled/tape": "4.11.0",
+    "collapsed-assert": "1.0.3",
+    "error": "10.1.2",
+    "npm-bin-deps": "1.3.2",
+    "resultify": "1.1.2",
+    "uuid": "8.0.0"
+  },
+  "dependencies": {}
+}
