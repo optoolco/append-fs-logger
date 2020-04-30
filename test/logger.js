@@ -4,7 +4,7 @@ const path = require('path')
 const os = require('os')
 const fs = require('fs')
 
-const { resultify } = require('resultify')
+const { resultify } = require('../resultify.js')
 const CollapsedAssert = require('collapsed-assert')
 const test = require('@pre-bundled/tape')
 const uuid = require('uuid').v4

@@ -5,8 +5,8 @@ const util = require('util')
 const assert = require('assert')
 const stream = require('stream')
 
-const { wrapf, WError } = require('error')
-const { resultify } = require('resultify')
+const { wrapf, WError } = require('./error.js')
+const { resultify } = require('./resultify.js')
 
 const readFile = resultify(fs.readFile)
 const pipeline = resultify(stream.pipeline)
