@@ -713,7 +713,7 @@ test('truncated file truncates more if last line is long', async (assert) => {
   assert.equal(logs.length, 3 * 1024)
 
   let lastWrite
-  for (let i = 0; i < 950; i++) {
+  for (let i = 0; i < 1023; i++) {
     lastWrite = logger.info('large msg', {
       index: i + 3 * 1024,
       largeStr: largeStr
@@ -723,7 +723,7 @@ test('truncated file truncates more if last line is long', async (assert) => {
   await lastWrite
 
   const logs2 = await readLogs(logger)
-  assert.equal(logs2.length, 809)
+  assert.equal(logs2.length, 882)
 
   const cassert = new CollapsedAssert()
   for (let i = 0; i < logs2.length; i++) {
