@@ -632,8 +632,9 @@ test('truncates file on MAX_LOG_FILE_SIZE', async (assert) => {
 
   const largeStr = new Array(16 + 1).join(smallStr)
   const expectedTruncate = 2 * 1024
+  const OVERHEAD_OFFSET = 21
 
-  let index = expectedTruncate - 21
+  let index = expectedTruncate - OVERHEAD_OFFSET
   let lastWrite
   for (let i = 0; i < index; i++) {
     lastWrite = logger.info('normal msg', {
@@ -655,12 +656,14 @@ test('truncates file on MAX_LOG_FILE_SIZE', async (assert) => {
   }
   cassert.report(assert, 'all indexes correct')
 
-  await logger.info('normal msg', {
-    largeStr: largeStr, index: index++
-  })
+  for (let i = 0; i < OVERHEAD_OFFSET; i++) {
+    await logger.info('normal msg', {
+      largeStr: largeStr, index: index++
+    })
+  }
 
   const logs2 = await readLogs(logger)
-  assert.equal(logs2.length, 1521)
+  assert.equal(logs2.length, 1541)
   assert.equal(logs2[logs2.length - 1].fields.index, index - 1)
 
   const cassert2 = new CollapsedAssert()
@@ -676,7 +679,7 @@ test('truncates file on MAX_LOG_FILE_SIZE', async (assert) => {
   }
 
   const logs3 = await readLogs(logger)
-  assert.equal(logs3.length, 1531)
+  assert.equal(logs3.length, 1551)
   assert.equal(logs3[logs3.length - 1].fields.index, index + 9)
 
   const cassert3 = new CollapsedAssert()
