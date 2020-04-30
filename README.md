@@ -3,11 +3,11 @@
 Lightweight, zero dependency `logger` designed mostly for
 `electron` applications.
 
-|        |  append-fs-logger  |  pino  |  winston  |  log4js  |  logtron  |  bunyan  |
+|        |  append-fs-logger  |  pino  |  log4js   |  bunyan  |  winston  |  logtron |
 |--------|:------------------:|:------:|:---------:|:--------:|:---------:|:--------:|
-|pkg size|    64 KB           | 480 KB |   3.4 MB  |   562 KB |   5.55MB  |  3.82 MB |
-|bundle size|  12 KB          | 97 KB  | 203 KB    | 100 KB   | 170 KB    |   17 KB  |
-|dep count|       0           |   8    |    42     |   13     |    105    |    21    |
+|pkg size|    64 KB           | 480 KB |  562 KB   |  3.82 MB |   3.4 MB  |  5.55 MB |
+|bundle size|  12 KB          | 97 KB  |  100 KB   |  17 KB   |   203 KB  |   170 KB |
+|dep count|       0           |   8    |    13     |   21     |    42     |    105   |
 
 ## Example
 
