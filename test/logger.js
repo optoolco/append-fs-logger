@@ -449,7 +449,7 @@ test('truncates logline > MAX_LOG_LINE_SIZE', async (assert) => {
     .replace(IS_ISO_STRING, '')
 
   assert.ok(trunc.startsWith(
-    '{"name":"electron-main","hostname":"raynos-Precision-5530",' +
+    `{"name":"electron-main","hostname":"${os.hostname()}",` +
     `"pid":${process.pid},"level":"info","msg":"a really large msg",` +
     '"time":"Z","v":1,"fields":' +
     '{"largeStr":"AAAAAA'
