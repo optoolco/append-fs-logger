@@ -600,7 +600,10 @@ test('truncates many times', async (assert) => {
         index: j
       })
 
-      if (j % 100 === 0) await sleep(1)
+      if (j % 100 === 0) {
+        await lastWrite
+        await sleep(1)
+      }
     }
     totalLines += loopAmount
 
@@ -615,7 +618,7 @@ test('truncates many times', async (assert) => {
        * Every time we log >4096 lines the logger will truncate
        * 25% which is 1025 due to rounding error.
        */
-      while (expectedLines > 4096) {
+      while (expectedLines >= 4096) {
         expectedLines -= 1025
       }
 
