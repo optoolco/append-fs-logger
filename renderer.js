@@ -47,8 +47,8 @@ class RendererLogger {
     const format = `%c${timeStr}%c › `
     const colorStyle = level === 'info'
       ? 'color:green' : level === 'warn'
-        ? 'color:yellow' : level === 'info'
-          ? 'color:red' : 'color:unset'
+        ? 'color:orange' : level === 'error'
+          ? 'color:darkred' : 'color:unset'
 
     if (level === 'error') {
       console.error(format, colorStyle, 'color:unset', msg, info)
