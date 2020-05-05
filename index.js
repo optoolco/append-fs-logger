@@ -23,9 +23,6 @@ const EMPTY_OBJECT = {}
 
 const hostname = require('os').hostname()
 
-const RENDER_PREFIX = '\u001b[35mrend\u001b[39m '
-const MAIN_PREFIX = '\u001b[32mmain\u001b[39m '
-
 class OpenFailError extends WError {
   constructor (message, cause, info) {
     super(message, cause, info)
@@ -404,13 +401,25 @@ class MainLogger {
   constructor (productName, options) {
     assert(productName, 'productName required')
     assert(options.fileName, 'options.fileName required')
+    assert(!options.shortName || options.shortName.length <= 7,
+      'options.shortName must be 7 char or less')
 
     this.fsLogger = new AppendOnlyFSLogger(productName, options)
 
     this.console = options.console || false
-    this.prefix = options.prefix || (
-      options.isMain ? MAIN_PREFIX : ''
-    )
+    this.shortName = options.shortName
+      ? options.shortName.padStart(7, ' ') : ''
+    this.prefix = options.prefix || ''
+
+    if (options.isMain) {
+      const mainPrefix = this.shortName
+        ? `${this.shortName}:main` : 'main'
+      this.prefix = green(mainPrefix)
+    }
+
+    const renderPrefix = this.shortName
+      ? `${this.shortName}:rend` : 'rend'
+    this.renderPrefix = magenta(renderPrefix)
   }
 
   open () {
@@ -422,7 +431,7 @@ class MainLogger {
   }
 
   logIPC (level, msg, info, timestamp) {
-    this._log(level, msg, info, timestamp, RENDER_PREFIX)
+    this._log(level, msg, info, timestamp, this.renderPrefix)
   }
 
   _log (level, msg, info, timestamp, prefix) {
@@ -571,4 +580,12 @@ function red (text) {
 
 function yellow (text) {
   return '\u001b[33m' + text + '\u001b[39m'
+}
+
+function green (text) {
+  return '\u001b[32m' + text + '\u001b[39m'
+}
+
+function magenta (text) {
+  return '\u001b[35m' + text + '\u001b[39m'
 }
