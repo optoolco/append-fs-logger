@@ -414,12 +414,12 @@ class MainLogger {
     if (options.isMain) {
       const mainPrefix = this.shortName
         ? `${this.shortName}:main` : 'main'
-      this.prefix = green(mainPrefix)
+      this.prefix = green(mainPrefix) + ' '
     }
 
     const renderPrefix = this.shortName
       ? `${this.shortName}:rend` : 'rend'
-    this.renderPrefix = magenta(renderPrefix)
+    this.renderPrefix = magenta(renderPrefix) + ' '
   }
 
   open () {
