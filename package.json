@@ -1,6 +1,6 @@
 {
   "name": "append-fs-logger",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Straight forward zero-dependency disk logger",
   "main": "index.js",
   "scripts": {
