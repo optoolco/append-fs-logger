@@ -444,6 +444,50 @@ test('must open before logging', async function t (assert) {
   assert.end()
 })
 
+test('writing to fd===null', async function t (assert) {
+  const errors = []
+  const logger = await makeLogger({
+    onError: (err) => { errors.push(err) }
+  })
+
+  /** Poison the logger by setting fd to null */
+  logger.fsLogger.fd = null
+
+  /**
+   * If the logger was buggy it would throw an unhandled
+   * rejection which the test suite would forward to uncaught
+   * exception.
+   *
+   * If we log inside the uncaught exception handler then
+   * we would get a race condition
+   */
+  process.on('uncaughtException', uncaught)
+
+  logger.info('hello')
+
+  const logs = await readLogs(logger)
+  assert.equal(logs.length, 0)
+  assert.equal(errors.length, 1)
+
+  assert.equal(
+    errors[0].message,
+    '_flush() could not write, fd is null'
+  )
+
+  process.removeListener('uncaughtException', uncaught)
+  assert.end()
+
+  function uncaught (err) {
+    console.log('uncaught')
+    errors.push(err)
+
+    logger.error('error', {
+      msg: 'lol rekt son',
+      err: err
+    })
+  }
+})
+
 test('truncates logline > MAX_LOG_LINE_SIZE', async (assert) => {
   const logger = await makeLogger()
   const largeStr = new Array(128).join(smallStr)

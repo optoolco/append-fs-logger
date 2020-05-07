@@ -200,6 +200,13 @@ class AppendOnlyFSLogger {
       pendingWrites.join('\n') + '\n'
     )
 
+    /** If the fd is poisoned here then return an error */
+    if (!this.fd) {
+      return {
+        err: new Error('_flush() could not write, fd is null')
+      }
+    }
+
     /** Append the log to the end of the file */
     const { err: writeErr, data: bytesWritten } =
       await write(this.fd, buf, 0, buf.length, 0)
