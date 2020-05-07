@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const util = require('util')
+const path = require('path')
 const assert = require('assert')
 const stream = require('stream')
 
@@ -12,6 +13,7 @@ const readFile = resultify(fs.readFile)
 const pipeline = resultify(stream.pipeline)
 const unlink = resultify(fs.unlink)
 const open = resultify(fs.open)
+const mkdir = resultify(fs.mkdir)
 const rename = resultify(fs.rename)
 const close = resultify(fs.close)
 const write = resultify(fs.write)
@@ -87,6 +89,21 @@ class AppendOnlyFSLogger {
     }
 
     this.hasOpened = true
+
+    const dirname = path.dirname(this.logFileLocation)
+    const { err: mkdirErr } = await mkdir(dirname, {
+      recursive: true
+    })
+    if (mkdirErr) {
+      const err = OpenFailError.wrap(
+        'Could not mkdir for log file', mkdirErr, {
+          fileName: this.logFileLocation,
+          dirname: dirname,
+          productName: this.productName
+        }
+      )
+      return { err: err }
+    }
 
     const { err: readErr, data: buf } =
       await readFile(this.logFileLocation)

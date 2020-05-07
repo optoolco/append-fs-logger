@@ -133,6 +133,20 @@ test('open fails on write only file', async (assert) => {
   assert.end()
 })
 
+test('open on nested folder', async (assert) => {
+  const fileName = path.join(os.tmpdir(), uuid(), `${uuid()}.json`)
+
+  const logger = new AppendOnlyFSLogger(PRODUCT_NAME, {
+    fileName: fileName
+  })
+
+  const { err: err } = await logger.open()
+  assert.ifError(err)
+
+  fs.unlinkSync(fileName)
+  assert.end()
+})
+
 test('open two loggers on same fileName', async (assert) => {
   const logger = await makeLogger()
 
