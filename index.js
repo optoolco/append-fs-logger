@@ -88,8 +88,6 @@ class AppendOnlyFSLogger {
       return { err: new Error('Cannot open twice()') }
     }
 
-    this.hasOpened = true
-
     const dirname = path.dirname(this.logFileLocation)
     const { err: mkdirErr } = await mkdir(dirname, {
       recursive: true
@@ -152,8 +150,9 @@ class AppendOnlyFSLogger {
 
       return { err: err }
     }
-    this.fd = fd
 
+    this.hasOpened = true
+    this.fd = fd
     return {}
   }
 
