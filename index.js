@@ -157,22 +157,37 @@ class AppendOnlyFSLogger {
   }
 
   _write (level, msg, info, time) {
-    let str = JSON.stringify(new LogLine(
-      this.productName, level, msg, info || EMPTY_OBJECT, time
-    ))
-
-    if (str.length > MAX_LOG_LINE_SIZE) {
-      const truncLevel = level === 'info' ? 'warn' : level
-
-      str = JSON.stringify(new LogLine(
-        this.productName, truncLevel, msg, {
-          isTruncated: true
-        }, time, str.slice(0, MAX_LOG_LINE_SIZE - 3) + '...'
+    /**
+     * TODO: @Raynos what is the performance impact of try/catch
+     */
+    try {
+      let str = JSON.stringify(new LogLine(
+        this.productName, level, msg, info || EMPTY_OBJECT, time
       ))
-    }
 
-    this.pendingWrites.push(str)
-    return this.flush()
+      if (str.length > MAX_LOG_LINE_SIZE) {
+        const truncLevel = level === 'info' ? 'warn' : level
+
+        str = JSON.stringify(new LogLine(
+          this.productName, truncLevel, msg, {
+            isTruncated: true
+          }, time, str.slice(0, MAX_LOG_LINE_SIZE - 3) + '...'
+        ))
+      }
+
+      this.pendingWrites.push(str)
+      return this.flush()
+    } catch (unexpectedError) {
+      const err = wrapf(
+        '_write() threw an unexpected exception',
+        unexpectedError,
+        {
+          productName: this.productName,
+          logFileLocation: this.logFileLocation
+        }
+      )
+      this.onError(err)
+    }
   }
 
   async flush () {

@@ -268,6 +268,64 @@ test('warn level', async (assert) => {
   assert.end()
 })
 
+test('logging cyclic JSON', async (assert) => {
+  const errors = []
+  const uncaughts = []
+  const logger = await makeLogger({
+    onError: (err) => { errors.push(err) }
+  })
+
+  /**
+   * If the logger was buggy it would throw an unhandled
+   * rejection which the test suite would forward to uncaught
+   * exception.
+   *
+   * If we log inside the uncaught exception handler then
+   * we would get a race condition
+   */
+  process.on('uncaughtException', uncaught)
+
+  /** Create a uncaught exception */
+  process.nextTick(() => {
+    throw new Error('force uncaught')
+  })
+
+  const logs = await readLogs(logger)
+  assert.equal(logs.length, 0)
+  assert.equal(errors.length, 1)
+  assert.equal(uncaughts.length, 1)
+
+  const msg = errors[0].message
+  assert.ok(msg.includes('_write() threw an unexpected exception:'))
+  assert.ok(msg.includes('Converting circular structure to JSON'))
+
+  process.removeListener('uncaughtException', uncaught)
+  assert.end()
+
+  function uncaught (err) {
+    uncaughts.push(err)
+
+    /**
+     * Testing what happens when you log something bad
+     * in the uncaught handler.
+     *
+     * If the uncaught handler causes logger.error() which
+     * causes an uncaught exception in the logger then you
+     * get an infinite logging loop.
+     */
+    const cyclic = {}
+    cyclic.cyclic = cyclic
+
+    process.nextTick( () => {
+      logger.error('error', {
+        msg: 'lol rekt son',
+        err: err,
+        cyclic: cyclic
+      })
+    })
+  }
+})
+
 test('error level', async (assert) => {
   const logger = await makeLogger()
 
