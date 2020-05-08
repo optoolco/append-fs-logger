@@ -140,7 +140,7 @@ test('open on nested folder', async (assert) => {
     fileName: fileName
   })
 
-  const { err: err } = await logger.open()
+  const { err } = await logger.open()
   assert.ifError(err)
 
   fs.unlinkSync(fileName)
@@ -316,7 +316,7 @@ test('logging cyclic JSON', async (assert) => {
     const cyclic = {}
     cyclic.cyclic = cyclic
 
-    process.nextTick( () => {
+    process.nextTick(() => {
       logger.error('error', {
         msg: 'lol rekt son',
         err: err,
