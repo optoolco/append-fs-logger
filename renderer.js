@@ -86,20 +86,28 @@ class RendererLogger {
     }
 
     function handleUncaught (err) {
-      /**
-       * This happens with a cross domain <script> tag where an
-       * uncaught exception occurred in some other <script> that
-       * does not belong to the current domain....
-       */
-      if (err === null) {
-        self.error('Uncaught exception in cross-domain <script>')
-        return
-      }
+      try {
+        /**
+         * This happens with a cross domain <script> tag where an
+         * uncaught exception occurred in some other <script> that
+         * does not belong to the current domain....
+         */
+        if (err === null) {
+          self.error('Uncaught exception in cross-domain <script>')
+          return
+        }
 
-      self.error('uncaught exception happened', {
-        err: err,
-        stack: err.stack || new Error('temp').stack
-      })
+        self.error('uncaught exception happened', {
+          err: err,
+          stack: err.stack || new Error('temp').stack
+        })
+      } catch (_err) {
+        /**
+         * If an uncaught exception happens in the uncaught
+         * exception then we cannot do much about it at all.
+         */
+        console.error('Uncaught in the handleUncaught()')
+      }
 
       return true
     }
