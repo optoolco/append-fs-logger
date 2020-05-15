@@ -1,5 +1,7 @@
 'use strict'
 
+const SEEN_VALUE = {}
+
 class RendererLogger {
   constructor (ipcRenderer, options = {}) {
     if (!ipcRenderer) throw new Error('ipcRenderer required')
@@ -86,6 +88,16 @@ class RendererLogger {
     }
 
     function handleUncaught (err) {
+      /**
+       * Sometimes window.onError and uncaughtException both
+       * fire so we set a unique value to avoid double logging
+       * the EXACT same uncaught exception.
+       */
+      if (err.__seen__ === SEEN_VALUE) {
+        return
+      }
+      err.__seen__ = SEEN_VALUE
+
       try {
         /**
          * This happens with a cross domain <script> tag where an
