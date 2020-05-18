@@ -1,5 +1,7 @@
 'use strict'
 
+const SEEN_VALUE = {}
+
 class RendererLogger {
   constructor (ipcRenderer, options = {}) {
     if (!ipcRenderer) throw new Error('ipcRenderer required')
@@ -87,19 +89,37 @@ class RendererLogger {
 
     function handleUncaught (err) {
       /**
-       * This happens with a cross domain <script> tag where an
-       * uncaught exception occurred in some other <script> that
-       * does not belong to the current domain....
+       * Sometimes window.onError and uncaughtException both
+       * fire so we set a unique value to avoid double logging
+       * the EXACT same uncaught exception.
        */
-      if (err === null) {
-        self.error('Uncaught exception in cross-domain <script>')
+      if (err.__seen__ === SEEN_VALUE) {
         return
       }
+      err.__seen__ = SEEN_VALUE
 
-      self.error('uncaught exception happened', {
-        err: err,
-        stack: err.stack || new Error('temp').stack
-      })
+      try {
+        /**
+         * This happens with a cross domain <script> tag where an
+         * uncaught exception occurred in some other <script> that
+         * does not belong to the current domain....
+         */
+        if (err === null) {
+          self.error('Uncaught exception in cross-domain <script>')
+          return
+        }
+
+        self.error('uncaught exception happened', {
+          err: err,
+          stack: err.stack || new Error('temp').stack
+        })
+      } catch (_err) {
+        /**
+         * If an uncaught exception happens in the uncaught
+         * exception then we cannot do much about it at all.
+         */
+        console.error('Uncaught in the handleUncaught()')
+      }
 
       return true
     }

@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const util = require('util')
+const path = require('path')
 const assert = require('assert')
 const stream = require('stream')
 
@@ -12,6 +13,7 @@ const readFile = resultify(fs.readFile)
 const pipeline = resultify(stream.pipeline)
 const unlink = resultify(fs.unlink)
 const open = resultify(fs.open)
+const mkdir = resultify(fs.mkdir)
 const rename = resultify(fs.rename)
 const close = resultify(fs.close)
 const write = resultify(fs.write)
@@ -86,7 +88,20 @@ class AppendOnlyFSLogger {
       return { err: new Error('Cannot open twice()') }
     }
 
-    this.hasOpened = true
+    const dirname = path.dirname(this.logFileLocation)
+    const { err: mkdirErr } = await mkdir(dirname, {
+      recursive: true
+    })
+    if (mkdirErr) {
+      const err = OpenFailError.wrap(
+        'Could not mkdir for log file', mkdirErr, {
+          fileName: this.logFileLocation,
+          dirname: dirname,
+          productName: this.productName
+        }
+      )
+      return { err: err }
+    }
 
     const { err: readErr, data: buf } =
       await readFile(this.logFileLocation)
@@ -135,28 +150,44 @@ class AppendOnlyFSLogger {
 
       return { err: err }
     }
-    this.fd = fd
 
+    this.hasOpened = true
+    this.fd = fd
     return {}
   }
 
   _write (level, msg, info, time) {
-    let str = JSON.stringify(new LogLine(
-      this.productName, level, msg, info || EMPTY_OBJECT, time
-    ))
-
-    if (str.length > MAX_LOG_LINE_SIZE) {
-      const truncLevel = level === 'info' ? 'warn' : level
-
-      str = JSON.stringify(new LogLine(
-        this.productName, truncLevel, msg, {
-          isTruncated: true
-        }, time, str.slice(0, MAX_LOG_LINE_SIZE - 3) + '...'
+    /**
+     * TODO: @Raynos what is the performance impact of try/catch
+     */
+    try {
+      let str = JSON.stringify(new LogLine(
+        this.productName, level, msg, info || EMPTY_OBJECT, time
       ))
-    }
 
-    this.pendingWrites.push(str)
-    return this.flush()
+      if (str.length > MAX_LOG_LINE_SIZE) {
+        const truncLevel = level === 'info' ? 'warn' : level
+
+        str = JSON.stringify(new LogLine(
+          this.productName, truncLevel, msg, {
+            isTruncated: true
+          }, time, str.slice(0, MAX_LOG_LINE_SIZE - 3) + '...'
+        ))
+      }
+
+      this.pendingWrites.push(str)
+      return this.flush()
+    } catch (unexpectedError) {
+      const err = wrapf(
+        '_write() threw an unexpected exception',
+        unexpectedError,
+        {
+          productName: this.productName,
+          logFileLocation: this.logFileLocation
+        }
+      )
+      this.onError(err)
+    }
   }
 
   async flush () {
@@ -183,6 +214,13 @@ class AppendOnlyFSLogger {
     const buf = Buffer.from(
       pendingWrites.join('\n') + '\n'
     )
+
+    /** If the fd is poisoned here then return an error */
+    if (!this.fd) {
+      return {
+        err: new Error('_flush() could not write, fd is null')
+      }
+    }
 
     /** Append the log to the end of the file */
     const { err: writeErr, data: bytesWritten } =
