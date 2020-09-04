@@ -26,33 +26,6 @@ logger.warn(msg, { fullNested: { json: true } })
 logger.error(msg, { fieldA: 'some info', err: err })
 ```
 
-## Example (electron renderer)
-
-```js
-// In the renderer browser window process.
-const { ipcRenderer } = require('electron')
-const RendererLogger = require('append-fs-logger/renderer')
-
-const logger = new RendererLogger(ipcRenderer)
-logger.hookupUncaught()
-```
-
-```js
-// Somewhere in the main electron process
-const { ipcMain } = require('electron')
-
-const logger = new MainLogger('my-app', {
-  fileName: fileName,
-  console: true
-})
-
-ipcMain.handle('logger', async (_event, arg) => {
-  logger.logIPC(
-    arg.level, arg.message, arg.info || {}, arg.timestamp
-  )
-})
-```
-
 ## Motivation
 
 When doing logging in an electron app we want different defaults
