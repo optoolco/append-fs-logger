@@ -1,3 +1,4 @@
+// @ts-check
 'use strict'
 
 const path = require('path')
@@ -5,6 +6,9 @@ const os = require('os')
 const fs = require('fs')
 
 const { resultify } = require('../resultify.js')
+
+/** @type {import('assert')} */
+const nodeAssert = require('assert')
 const CollapsedAssert = require('collapsed-assert')
 const test = require('@pre-bundled/tape')
 const uuid = require('uuid').v4
@@ -79,7 +83,7 @@ test('logging to a file', async (assert) => {
 })
 
 // logger at all tests
-test.skip('Throw loud error on READONLY file system', async (assert) => {
+test('Throw loud error on READONLY file system', async (assert) => {
   const fileName = path.join(os.tmpdir(), `${uuid()}.json`)
 
   const { err: writeErr } = await writeFile(fileName, 'some text')
@@ -95,14 +99,15 @@ test.skip('Throw loud error on READONLY file system', async (assert) => {
 
   const { err: loggerErr } = await logger.open()
   assert.ok(loggerErr)
-  assert.equal(loggerErr.code, 'EACCES')
-  assert.equal(loggerErr.syscall, 'open')
+  nodeAssert(loggerErr)
+  assert.equal(Reflect.get(loggerErr, 'code'), 'EACCES')
+  assert.equal(Reflect.get(loggerErr, 'syscall'), 'open')
 
   /**
    * The open() method returns a special error with a shouldBail
    * property.
    */
-  assert.equal(loggerErr.shouldBail, true)
+  assert.equal(Reflect.get(loggerErr, 'shouldBail'), true)
 
   fs.unlinkSync(fileName)
   assert.end()
@@ -125,9 +130,11 @@ test('open fails on write only file', async (assert) => {
 
   const { err: loggerErr } = await logger.open()
   assert.ok(loggerErr)
-  assert.equal(loggerErr.code, 'EACCES')
-  assert.equal(loggerErr.syscall, 'open')
-  assert.equal(loggerErr.shouldBail, false)
+  nodeAssert(loggerErr)
+
+  assert.equal(Reflect.get(loggerErr, 'code'), 'EACCES')
+  assert.equal(Reflect.get(loggerErr, 'syscall'), 'open')
+  assert.equal(Reflect.get(loggerErr, 'shouldBail'), false)
 
   fs.unlinkSync(fileName)
   assert.end()
@@ -166,6 +173,8 @@ test('open the same logger twice', async (assert) => {
 
   const { err: openErr } = await logger.open()
   assert.ok(openErr)
+  nodeAssert(openErr)
+
   assert.equal(openErr.message, 'Cannot open twice()')
 
   assert.end()
@@ -187,9 +196,11 @@ test('open fails on read only file', async (assert) => {
 
   const { err: loggerErr } = await logger.open()
   assert.ok(loggerErr)
-  assert.equal(loggerErr.code, 'EACCES')
-  assert.equal(loggerErr.syscall, 'open')
-  assert.equal(loggerErr.shouldBail, true)
+  nodeAssert(loggerErr)
+
+  assert.equal(Reflect.get(loggerErr, 'code'), 'EACCES')
+  assert.equal(Reflect.get(loggerErr, 'syscall'), 'open')
+  assert.equal(Reflect.get(loggerErr, 'shouldBail'), true)
 
   fs.unlinkSync(fileName)
   assert.end()
@@ -214,8 +225,8 @@ test('open on existing file', async (assert) => {
   assert.equal(fsLogger.lines, 2)
   assert.equal(fsLogger.size, 43)
 
-  await logger.info('message one')
-  await logger.info('message two')
+  await logger.info('message one', {})
+  await logger.info('message two', {})
 
   const logs = await readLogs(logger)
   assert.equal(logs.length, 4)
@@ -241,7 +252,7 @@ test('info level', async (assert) => {
   assert.equal(logs[0].level, 'info')
   assert.equal(logs[0].fields.some, 'fields')
 
-  logger.info('msg only')
+  logger.info('msg only', {})
 
   const logs2 = await readLogs(logger)
   assert.equal(logs2.length, 2)
@@ -269,6 +280,7 @@ test('warn level', async (assert) => {
 })
 
 test('logging cyclic JSON', async (assert) => {
+  /** @type {Error[]} */
   const errors = []
   const uncaughts = []
   const logger = await makeLogger({
@@ -302,6 +314,7 @@ test('logging cyclic JSON', async (assert) => {
   process.removeListener('uncaughtException', uncaught)
   assert.end()
 
+  /** @param {Error} err */
   function uncaught (err) {
     uncaughts.push(err)
 
@@ -345,12 +358,15 @@ test('message is mandatory', async (assert) => {
   const logger = await makeLogger()
 
   assert.throws(() => {
+    // @ts-expect-error
     logger.info()
   }, /info\(msg\); msg is mandatory/)
   assert.throws(() => {
+    // @ts-expect-error
     logger.warn()
   }, /warn\(msg\); msg is mandatory/)
   assert.throws(() => {
+    // @ts-expect-error
     logger.error()
   }, /error\(msg\); msg is mandatory/)
 
@@ -362,12 +378,15 @@ test('info, if exists must be object', async (assert) => {
   const logger = await makeLogger()
 
   assert.throws(() => {
+    // @ts-expect-error
     logger.info('foo', 'bar')
   }, /info\(msg, info\); info must be object/)
   assert.throws(() => {
+    // @ts-expect-error
     logger.warn('foo', 'bar')
   }, /warn\(msg, info\); info must be object/)
   assert.throws(() => {
+    // @ts-expect-error
     logger.error('foo', 'bar')
   }, /error\(msg, info\); info must be object/)
 
@@ -402,6 +421,10 @@ test('error objects serialize correctly', async function t (assert) {
 
 test('error objects stack contains cause', async function t (assert) {
   const CustomError = class CustomError extends Error {
+    /**
+     * @param {Error} cause
+     * @param {string} message
+     */
     constructor (cause, message) {
       super(message)
 
@@ -442,6 +465,7 @@ test('error objects stack contains cause', async function t (assert) {
   unwrap(logger.destroy())
   assert.end()
 
+  /** @param {Error} err */
   function makeCustomError (err) {
     return new CustomError(err, 'wrapped error')
   }
@@ -496,6 +520,7 @@ test('must open before logging', async function t (assert) {
   })
 
   assert.throws(() => {
+    // @ts-expect-error
     logger.info('foo')
   }, /Must call open\(\) first/)
 
@@ -503,6 +528,7 @@ test('must open before logging', async function t (assert) {
 })
 
 test('writing to fd===null', async function t (assert) {
+  /** @type {Error[]} */
   const errors = []
   const logger = await makeLogger({
     onError: (err) => { errors.push(err) }
@@ -521,7 +547,7 @@ test('writing to fd===null', async function t (assert) {
    */
   process.on('uncaughtException', uncaught)
 
-  logger.info('hello')
+  logger.info('hello', {})
 
   const logs = await readLogs(logger)
   assert.equal(logs.length, 0)
@@ -535,6 +561,7 @@ test('writing to fd===null', async function t (assert) {
   process.removeListener('uncaughtException', uncaught)
   assert.end()
 
+  /** @param {Error} err */
   function uncaught (err) {
     console.log('uncaught')
     errors.push(err)
@@ -577,9 +604,9 @@ test('truncates logline > MAX_LOG_LINE_SIZE', async (assert) => {
 })
 
 test('write failure', async (assert) => {
+  /** @type {Error | undefined} */
   let writeErr
   const logger = await makeLogger({
-    silent: true,
     onError: (err) => {
       writeErr = err
     }
@@ -597,14 +624,18 @@ test('write failure', async (assert) => {
     some: 'other field'
   })
 
+  nodeAssert(writeErr)
   assert.ok(writeErr)
+
   assert.equal(
     writeErr.message,
     '_write() could not write(fd): EBADF: bad file descriptor, write'
   )
 
-  assert.equal(writeErr.toJSON().code, 'EBADF')
-  assert.equal(writeErr.toJSON().syscall, 'write')
+  const werr = /** @type {import('../error').WError} */ (writeErr)
+
+  assert.equal(werr.toJSON().code, 'EBADF')
+  assert.equal(werr.toJSON().syscall, 'write')
 
   assert.end()
 })
@@ -869,12 +900,14 @@ test('truncated file truncates more if last line is long', async (assert) => {
   assert.end()
 })
 
+/** @param {number} n */
 function sleep (n) {
   return new Promise((resolve) => {
     setTimeout(resolve, n)
   })
 }
 
+/** @param {AppendOnlyFSLogger} logger */
 async function readLogs (logger) {
   await sleep(25)
   const { err, data: buf } =
@@ -883,6 +916,7 @@ async function readLogs (logger) {
     throw err
   }
 
+  /** @type {string} */
   const str = buf.toString('utf8')
   const lines = str.split('\n').filter(Boolean)
 
@@ -910,13 +944,17 @@ async function readLogs (logger) {
   })
 }
 
-async function makeLogger (options = {}) {
+/**
+ * @param {{
+ *    onError?: (err: Error) => void
+ * }} [options]
+ */
+async function makeLogger (options) {
   const fileName = path.join(os.tmpdir(), `${uuid()}.json`)
 
   const logger = new AppendOnlyFSLogger(PRODUCT_NAME, {
     fileName: fileName,
-    silent: options.silent,
-    onError: options.onError
+    onError: options ? options.onError : undefined
   })
 
   const { err } = await logger.open()
@@ -925,6 +963,9 @@ async function makeLogger (options = {}) {
   return logger
 }
 
+/**
+ * @param {Promise<{ err?: Error }>} p
+ */
 async function unwrap (p) {
   const { err } = await p
   if (err) throw err

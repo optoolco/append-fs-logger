@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "types": ["node"],
+    "target": "es2018",
+    "lib": ["es2018"],
+    "noEmit": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "checkJs": true,
+    "resolveJsonModule": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "maxNodeModuleJsDepth": 0
+  }
+}
