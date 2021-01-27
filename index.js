@@ -168,7 +168,7 @@ class AppendOnlyFSLogger {
         }
       )
       if (openErr.code === 'EACCES') {
-        err.shouldBail = true
+        Reflect.set(err, 'shouldBail', true)
       }
 
       return { err: err }
@@ -216,6 +216,7 @@ class AppendOnlyFSLogger {
         }
       )
       this.onError(err)
+      return null
     }
   }
 
@@ -546,7 +547,9 @@ class MainLogger {
     if (info) {
       for (const k of Object.keys(info)) {
         if (isError(info[k])) {
-          info[k] = errorToObject(info[k])
+          info[k] = errorToObject(
+            /** @type {Error} */ (info[k])
+          )
         }
       }
     }
@@ -699,6 +702,8 @@ function shortFormateTime (timestamp) {
  * @param {number} [zeros]
  */
 function pad (number, zeros) {
+  zeros = zeros || 0
+
   let str = String(number)
   while (str.length < zeros) {
     str = '0' + str
