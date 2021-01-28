@@ -1,4 +1,5 @@
 // Copied from resultify@1.1.2.
+// @ts-nocheck
 'use strict'
 
 const promisifyCustom = require('util').promisify.custom

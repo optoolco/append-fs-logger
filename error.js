@@ -1,4 +1,5 @@
 // Copied from error@10.2.0.
+// @ts-nocheck
 'use strict'
 
 const assert = require('assert')

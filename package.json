@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "npr standard",
-    "test": "npm run lint && node test/index.js",
+    "tsc": "npr tsc -p jsconfig.json --maxNodeModuleJsDepth 0",
+    "test": "npm run tsc && npm run lint && node test/index.js",
     "vendor": "npm run vendor:resultify && npm run vendor:error",
     "vendor:resultify": "cp node_modules/resultify/index.js resultify.js; sed -i '1s;^;// Copied from resultify@1.1.2.\\n;' resultify.js;",
     "vendor:error": "cp node_modules/error/index.js error.js; sed -i '1s;^;// Copied from error@10.2.0.\\n;' error.js;"
@@ -32,13 +33,15 @@
     }
   ],
   "binDependencies": {
-    "standard": "14.3.1"
+    "standard": "14.3.1",
+    "typescript": "4.1.3"
   },
   "devDependencies": {
     "@pre-bundled/tape": "4.11.0",
+    "@types/node": "14.14.22",
     "collapsed-assert": "1.0.3",
     "error": "10.2.0",
-    "npm-bin-deps": "1.3.2",
+    "npm-bin-deps": "1.10.1",
     "resultify": "1.1.2",
     "uuid": "8.0.0"
   },
