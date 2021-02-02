@@ -7,9 +7,10 @@
     "lint": "npr standard",
     "tsc": "npr tsc -p jsconfig.json --maxNodeModuleJsDepth 0",
     "test": "npm run tsc && npm run lint && node test/index.js",
-    "vendor": "npm run vendor:resultify && npm run vendor:error",
-    "vendor:resultify": "cp node_modules/resultify/index.js resultify.js; sed -i '1s;^;// Copied from resultify@1.1.2.\\n;' resultify.js;",
-    "vendor:error": "cp node_modules/error/index.js error.js; sed -i '1s;^;// Copied from error@10.2.0.\\n;' error.js;"
+    "vendor": "npm run vendor:resultify && npm run vendor:error && npm run vendor:json-stringify-safe",
+    "vendor:resultify": "cp node_modules/resultify/index.js resultify.js; sed -i '1s;^;// Copied from resultify@1.1.2.\\n// @ts-nocheck\\n;' resultify.js;",
+    "vendor:error": "cp node_modules/error/index.js error.js; sed -i '1s;^;// Copied from error@10.2.0.\\n// @ts-nocheck\\n;' error.js;",
+    "vendor:json-stringify-safe": "cp node_modules/json-stringify-safe/stringify.js json-stringify-safe.js; sed -i '1s;^;// Copied from json-stringify-safe@5.0.0.\\n// @ts-nocheck\\n;' json-stringify-safe.js"
   },
   "author": "Raynos <raynos2@gmail.com>",
   "repository": "git://github.com/optoolco/append-fs-logger.git",
@@ -41,9 +42,12 @@
     "@types/node": "14.14.22",
     "collapsed-assert": "1.0.3",
     "error": "10.2.0",
+    "json-stringify-safe": "5.0.0",
     "npm-bin-deps": "1.10.1",
     "resultify": "1.1.2",
     "uuid": "8.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "rotating-file-stream": "2.1.3"
+  }
 }
