@@ -48,6 +48,6 @@
     "uuid": "8.0.0"
   },
   "dependencies": {
-    "rotating-file-stream": "2.1.3"
+    "raynos-rotating-file-stream": "2.1.3-patch1"
   }
 }

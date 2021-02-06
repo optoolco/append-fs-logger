@@ -1,13 +1,15 @@
 # Append FS logger
 
-Lightweight, zero dependency `logger` designed mostly for
+Lightweight, single dependency `logger` designed mostly for
 `electron` applications.
 
 |        |  append-fs-logger  |  pino  |  log4js   |  bunyan  |  winston  |  logtron |
 |--------|:------------------:|:------:|:---------:|:--------:|:---------:|:--------:|
 |pkg size|    64 KB           | 480 KB |  562 KB   |  3.82 MB |   3.4 MB  |  5.55 MB |
 |bundle size|  12 KB          | 97 KB  |  100 KB   |  17 KB   |   203 KB  |   170 KB |
-|dep count|       0           |   8    |    13     |   21     |    42     |    105   |
+|dep count|       1           |   8    |    13     |   21     |    42     |    105   |
+
+This package relies on `rotating-file-stream` to do most of the heavy lifting.
 
 ## Example
 

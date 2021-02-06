@@ -4,7 +4,7 @@
 const util = require('util')
 const assert = require('assert')
 
-const AppendOnlyFSLogger = require('./append-fs-logger.js')
+const RotatingFileLogger = require('./rotating-file-logger.js')
 
 class MainLogger {
   /**
@@ -24,7 +24,7 @@ class MainLogger {
     assert(!options.shortName || options.shortName.length <= 7,
       'options.shortName must be 7 char or less')
 
-    this.fsLogger = new AppendOnlyFSLogger(productName, options)
+    this.fsLogger = new RotatingFileLogger(productName, options)
 
     this.console = options.console || false
     this.shortName = options.shortName
@@ -42,10 +42,12 @@ class MainLogger {
     this.renderPrefix = magenta(renderPrefix) + ' '
   }
 
+  /** @returns {Promise<{ err?: Error }>} */
   open () {
     return this.fsLogger.open()
   }
 
+  /** @returns {Promise<{ err?: Error }>} */
   destroy () {
     return this.fsLogger.destroy()
   }
@@ -96,7 +98,7 @@ class MainLogger {
       this._logConsole(level, msg, info, timestamp, prefix)
     }
 
-    return this.fsLogger._write(level, msg, info, timestamp)
+    return this.fsLogger.writeLog(level, msg, info, timestamp)
   }
 
   /**
@@ -158,7 +160,6 @@ class MainLogger {
   }
 }
 
-MainLogger.LogLine = AppendOnlyFSLogger.LogLine
 module.exports = MainLogger
 
 /**
